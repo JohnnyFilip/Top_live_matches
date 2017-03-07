@@ -6,6 +6,8 @@ library(tidyr)
 api_key = 'C8A277A7606C4AEA3E6C9F54AA63BDED'
 key_actions(action = 'register_key', value = api_key)
 
+matches_info <- function(){
+
 M_info <- list()
 for (i in 0:3) {
   M_info[[i + 1]] <- ldply(get_top_live_game(partner = i)$content$game_list, data.frame)
@@ -13,8 +15,8 @@ for (i in 0:3) {
 }
 
 matches_info <- m_all_info %>% 
-  drop_na(team_name_radiant) %>% 
-  drop_na(team_name_dire) %>% 
+  drop_na(team_name_radiant) %>%
+  drop_na(team_name_dire) %>%
   subset(
     select = c(
       activate_time,
@@ -26,11 +28,14 @@ matches_info <- m_all_info %>%
       spectators,
       radiant_lead,
       radiant_score,
-      dire_score
+      dire_score,
+      building_state
     )
   )
 
 print(matches_info)
+
+}
 
 top_live_matches <- function(team_name) {
   
@@ -59,47 +64,60 @@ top_live_matches <- function(team_name) {
       )
     )
   
-  # team_name <- 'Why Should I?'
+  # print(matches)
+  
+  # team_name <- 'OG Dota2'
+  
   t_rad <- matches[matches$team_name_radiant == team_name, ][1, ]
   t_dire <- matches[matches$team_name_dire == team_name, ][1, ]
   
-  # building_state <- matches[matches$team_name_radiant == team_name, ][1,]$building_state
-  #   
-  #   towers_destroyed <- function(building_state){
-  #     
-  #     # convert
-  #     bit <- rev(as.integer(intToBits(building_state)))
-  #     
-  #     # split to light/dark
-  #     fac <- rep(1:3, each = 3)
-  #     nms <- c('bottom','mid','top')
-  #     bit_light <- bit[c(24:32)] %>% split(fac) %>% set_names(nms)
-  #     bit_dark <- bit[c(8:16)] %>% split(fac) %>% set_names(nms)
-  #     
-  #     # count destroyed
-  #     bit_to_destroyed <- function(bit){
-  #       towers <- bit[1] * 2^2 + bit[2] * 2^1 + bit[3] * 2^0 - 1
-  #       min(towers, 3)
-  #     }
-  #     
-  #     list(
-  #       towers_light = lapply(bit_light, bit_to_destroyed) %>% unlist %>% sum,
-  #       towers_dark = lapply(bit_dark, bit_to_destroyed) %>% unlist %>% sum
-  #     )
-  #   }
+  
+  
+  
   
   if (!is.na(t_rad$team_name_radiant == team_name)) {
+    building_state <- t_rad$building_state
     t_rad
   } else if (!is.na(t_dire$team_name_dire == team_name)) {
+    building_state <- t_rad$building_state
     t_dire
   } else
     print("hovno")
+
+
+# building_state <- t_rad$building_state
+
+towers_destroyed <- function(building_state){
   
+  # convert
+  bit <- rev(as.integer(intToBits(building_state)))
+  
+  # split to light/dark
+  fac <- rep(1:3, each = 3)
+  nms <- c('bottom','mid','top')
+  bit_light <- bit[c(24:32)] %>% split(fac) %>% set_names(nms)
+  bit_dark <- bit[c(8:16)] %>% split(fac) %>% set_names(nms)
+  
+  # count destroyed
+  bit_to_destroyed <- function(bit){
+    towers <- bit[1] * 2^2 + bit[2] * 2^1 + bit[3] * 2^0 - 1
+    min(towers, 3)
+  }
+  
+  list(
+    towers_light = lapply(bit_light, bit_to_destroyed) %>% unlist %>% sum,
+    towers_dark = lapply(bit_dark, bit_to_destroyed) %>% unlist %>% sum
+  )
 }
 
-print(matches)
+}
 
 while(T){
-  print(top_live_matches('Team Empire'))
+  matches_info()
+  Sys.sleep(5)
+}
+
+while(T){
+  print(top_live_matches('TNC Pro Team'))
   Sys.sleep(5)
 }
