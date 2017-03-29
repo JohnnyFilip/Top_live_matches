@@ -14,7 +14,7 @@ for (i in 0:3) {
   m_all_info <- ldply(M_info, data.frame)
 }
 
-matches_info <- m_all_info %>% 
+match_list <- m_all_info %>% 
   drop_na(team_name_radiant) %>%
   drop_na(team_name_dire) %>%
   subset(
@@ -33,7 +33,7 @@ matches_info <- m_all_info %>%
     )
   )
 
-print(matches_info)
+print(match_list)
 
 }
 
@@ -65,59 +65,81 @@ top_live_matches <- function(team_name) {
     )
   
   # print(matches)
+  # team_name <- 'the wings gaming'
   
-  # team_name <- 'OG Dota2'
-  
-  t_rad <- matches[matches$team_name_radiant == team_name, ][1, ]
-  t_dire <- matches[matches$team_name_dire == team_name, ][1, ]
-  
-  
-  
-  
+  t_rad <- m_all[m_all$team_name_radiant == team_name, ][1, ]
+  t_dire <- m_all[m_all$team_name_dire == team_name, ][1, ]
   
   if (!is.na(t_rad$team_name_radiant == team_name)) {
     building_state <- t_rad$building_state
-    t_rad
   } else if (!is.na(t_dire$team_name_dire == team_name)) {
     building_state <- t_rad$building_state
-    t_dire
-  } else
-    print("hovno")
+  }
+    
 
 
-# building_state <- t_rad$building_state
+  # building_state <- t_rad$building_state
+  # building_state <- 4784201
 
 towers_destroyed <- function(building_state){
-  
+
   # convert
   bit <- rev(as.integer(intToBits(building_state)))
-  
+
   # split to light/dark
   fac <- rep(1:3, each = 3)
   nms <- c('bottom','mid','top')
   bit_light <- bit[c(24:32)] %>% split(fac) %>% set_names(nms)
   bit_dark <- bit[c(8:16)] %>% split(fac) %>% set_names(nms)
-  
+
   # count destroyed
   bit_to_destroyed <- function(bit){
     towers <- bit[1] * 2^2 + bit[2] * 2^1 + bit[3] * 2^0 - 1
     min(towers, 3)
   }
-  
+
   list(
     towers_light = lapply(bit_light, bit_to_destroyed) %>% unlist %>% sum,
     towers_dark = lapply(bit_dark, bit_to_destroyed) %>% unlist %>% sum
   )
+
+  
+  
 }
+
+
+
+if (!is.na(t_rad$team_name_radiant == team_name)) {
+  t_rad %>% 
+    drop_na(team_name_radiant) %>% 
+    drop_na(team_name_dire) %>% 
+    subset(
+      select = c(
+        activate_time,
+        server_steam_id,
+        team_name_radiant,
+        team_name_dire,
+        game_time,
+        delay,
+        spectators,
+        radiant_lead,
+        radiant_score,
+        dire_score,
+        building_state
+      ))
+} else if (!is.na(t_dire$team_name_dire == team_name)) {
+  t_dire
+} else
+  print("hovno")
 
 }
 
 while(T){
   matches_info()
-  Sys.sleep(5)
+  Sys.sleep(20)
 }
 
 while(T){
-  print(top_live_matches('TNC Pro Team'))
+  print(top_live_matches('Execration'))
   Sys.sleep(5)
 }
